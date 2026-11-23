@@ -39,16 +39,16 @@ This repository contains:
 
 # Defects found and fixed
 
-| 1 | `cart.py` `add_item` | Zero, and negative quantities were accepted. Quantities must be positive numbers.
-| 2 | `cart.py` `add_item` | The stock check ignored items already in the cart. The check now compares stock with items already in the cart.
-| 3 | `cart.py` `remove_item` | A negative quantity increased the line. Now Zero and negative quantities are rejected. 
-| 4 | `cart.py` `apply_discount` | Discounts were calculated from self.total(), so coupons stacked. Adding or removing items after applying a coupon left the price unchanged. Now only the coupon code is stored. Now total() recalculates from the current subtotal every time, and a new coupon replaces the old one.
-| 5 | `cart.py` `total` | `SAVE15` on a $9.99 cart gave a total of -$5.01. Had floating point errors. With the fix the total can't go below zero and is rounded to cents.
-| 6 | `cart.py` `load` | load() appended saved items to existing lines, so loading twice doubled every quantity. Now load() clears the in memory cart first and the saved cart replaces it.
-| 7 | `repository.py` `get_product`, `get_saved_cart` | SQL was built with f-strings, so SQL injection could occur. Now have paramaterized queries.
-| 8 | `repository.py` `list_orders` | user_id was ignored, so every customer's orders were returned. Added WHERE user_id = ?. 
-| 9 | `checkout.py`, `repository.py` | Stock was decremented before payment with no check, which means it could go negative. A declined or failed payment still used stock and emptied the cart. New reserve_stock() decrements every line in one transaction and rolls back entirely if any line is short. The cart is only cleared after a successful payment.
-| 10 | `checkout.py`, `setup_db.py` | request_id was saved but never checked, so a retried checkout charged the customer twice and created two orders. Now request_id is required.
+- Defect 1 `cart.py` `add_item` Zero, and negative quantities were accepted. Quantities must be positive numbers.
+- Defect 2 `cart.py` `add_item` The stock check ignored items already in the cart. The check now compares stock with items already in the cart.
+- Defect 3 `cart.py` `remove_item` A negative quantity increased the line. Now Zero and negative quantities are rejected. 
+- Defect 4 `cart.py` `apply_discount` Discounts were calculated from self.total(), so coupons stacked. Adding or removing items after applying a coupon left the price unchanged. Now only the coupon code is stored. Now total() recalculates from the current subtotal every time, and a new coupon replaces the old one.
+- Defect 5 `cart.py` `total` `SAVE15` on a $9.99 cart gave a total of -$5.01. Had floating point errors. With the fix the total can't go below zero and is rounded to cents.
+- Defect 6 `cart.py` `load` load() appended saved items to existing lines, so loading twice doubled every quantity. Now load() clears the in memory cart first and the saved cart replaces it.
+- Defect 7 `repository.py` `get_product`, `get_saved_cart` SQL was built with f-strings, so SQL injection could occur. Now have paramaterized queries.
+- Defect 8 `repository.py` `list_orders`  user_id was ignored, so every customer's orders were returned. Added WHERE user_id = ?. 
+- Defect 9 `checkout.py`, `repository.py`  Stock was decremented before payment with no check, which means it could go negative. A declined or failed payment still used stock and emptied the cart. New reserve_stock() decrements every line in one transaction and rolls back entirely if any line is short. The cart is only cleared after a successful payment.
+- Defect 10 `checkout.py`, `setup_db.py`  request_id was saved but never checked, so a retried checkout charged the customer twice and created two orders. Now request_id is required.
 
 # Assumptions
 - Applying a new valid code replaces the old one. An invalid code is rejected and the current coupon stays.
@@ -60,22 +60,20 @@ This repository contains:
 
 14 unit tests:
 
-| # | Test | Defect |
-|---|
-| 1 | `test_add_item_rejects_invalid_quantities` | 1 |
-| 2 | `test_add_item_cannot_exceed_stock_across_multiple_adds` | 2 |
-| 3 | `test_remove_item_rejects_negative_quantity` | 3 |
-| 4 | `test_discounts_do_not_stack` | 4 |
-| 5 | `test_total_updates_when_cart_edited_after_discount` | 4, 5 |
-| 6 | `test_flat_discount_never_goes_negative` | 5 |
-| 7 | `test_loading_saved_cart_twice_does_not_duplicate` | 6 |
-| 8 | `test_get_product_is_not_vulnerable_to_sql_injection` | 7 |
-| 9 | `test_list_orders_filters_by_user` | 8 |
-| 10 | `test_successful_checkout_charges_discounted_total_and_clears_cart` | 4, 9 |
-| 11 | `test_declined_payment_keeps_stock_and_cart` | 9 |
-| 12 | `test_unexpected_payment_error_keeps_stock_and_cart` | 9 |
-| 13 | `test_checkout_fails_when_stock_changed_since_adding` | 9 |
-| 14 | `test_repeated_request_id_does_not_charge_twice` | 10 |
+- Unit Test 1  `test_add_item_rejects_invalid_quantities` | Defect 1
+- Unit Test 2  `test_add_item_cannot_exceed_stock_across_multiple_adds` | Defect 2
+- Unit Test 3  `test_remove_item_rejects_negative_quantity` | Defect 3
+- Unit Test 4  `test_discounts_do_not_stack` | Defect 4
+- Unit Test 5  `test_total_updates_when_cart_edited_after_discount` | Defect 4, 5
+- Unit Test 6  `test_flat_discount_never_goes_negative` | Defect 5
+- Unit Test 7  `test_loading_saved_cart_twice_does_not_duplicate` | Defect 6
+- Unit Test 8  `test_get_product_is_not_vulnerable_to_sql_injection` | Defect 7
+- Unit Test 9  `test_list_orders_filters_by_user` | Defect 8
+- Unit Test 10 `test_successful_checkout_charges_discounted_total_and_clears_cart` | Defect 4, 9
+- Unit Test 11 `test_declined_payment_keeps_stock_and_cart` | Defect 9
+- Unit Test 12 `test_unexpected_payment_error_keeps_stock_and_cart` | Defect 9
+- Unit Test 13 `test_checkout_fails_when_stock_changed_since_adding` | Defect 9
+- Unit Test 14 `test_repeated_request_id_does_not_charge_twice` | Defect 10
 
 Tests 1–7 are in `tests/test_cart.py`, 8–9 in `tests/test_repository.py` and 10–14 in `tests/test_checkout.py`.
 
